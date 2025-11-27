@@ -4,7 +4,7 @@ name: Build Windows App (Flet Native)
 on:
   workflow_dispatch:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
   build-windows:
@@ -17,24 +17,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.11"
 
       - name: Install uv
         run: pip install uv
 
       - name: Install Dependencies
         run: |
-          uv venv .venv
-          uv pip install flet 
-          # uv sync # if you have a uv.lock file
+          # The --seed flag installs pip and setuptools inside the venv
+          uv venv .venv --seed
+          
+          # Install flet with [all] to get packaging tools
+          uv pip install "flet[all]"
+          
+          # If you have other dependencies, install them here:
+          # uv pip install -r requirements.txt 
 
-      - name: Build with Flet
-        # This automatically handles the Flutter SDK download and native build
+      - name: Build Windows App
         run: |
-          .venv\Scripts\flet build windows --product "HyperSpin" 
+          # Activate venv explicitly for this step to ensure paths are correct
+          .venv\Scripts\activate
+          flet build windows --product "HyperSpin" -v
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: HyperSpin-Windows
-          path: build/windows/runner/Release/* # The output path for flet build
+          path: build/windows/runner/Release/*
