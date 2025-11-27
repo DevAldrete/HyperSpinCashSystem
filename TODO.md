@@ -26,7 +26,7 @@ Introduce product category support
 2. Update inventory UI to assign categories.
 3. Adjust analytics to allow grouping by category (even if UI comes later).
 
-Enhance payments classification
+Enhance payments classification (Done)
 1. Extend Payment with a type/method field (cash, card, refund, etc.).
 2. Update payment creation flows to set this.
 3. Add analytics helpers to filter/sum by payment type.
@@ -35,11 +35,11 @@ Improve dashboard interactivity and navigation
 1. Make metric cards clickable (e.g., open low-stock view on click).
 2. Organize app into clear sections: Dashboard, Inventory, Sales, Settings.
 
-Centralize theming and styling 
+Centralize theming and styling (Done)
 1. Create utils/theme.py for colors, typography, spacing.
 2. Replace hard-coded ft.Colors.* in components (like StatusSection) with theme constants.
 
-Add loading, empty, and error states
+Add loading, empty, and error states (Done)
 1. Show progress indicators while loading dashboard data.
 2. Show “No data yet” for empty charts/tables.
 3. Handle DB/logic errors with friendly messages instead of silent failures.
@@ -48,7 +48,7 @@ Strengthen authentication and authorization
 1. Define roles (admin, cashier, inventory manager).
 2. Enforce permissions in controllers and critical views (price changes, profit analytics, exports).
 
-Implement basic reporting and export
+Implement basic reporting and export (Done)
 1. Add simple “Sales report” and “Inventory report” screens with filters for date range and category.
 2. Implement CSV/Excel export for selected filters.
 

@@ -1,6 +1,7 @@
 import flet as ft
 from controllers.inventory import list_products, add_product, remove_product
 from models.item import Product
+from utils.theme import AppColors
 
 class ProductSection(ft.Container):
     def __init__(self):
@@ -12,7 +13,9 @@ class ProductSection(ft.Container):
         self.data_table = ft.DataTable(
             columns=[
                 ft.DataColumn(ft.Text("Name")),
+                ft.DataColumn(ft.Text("Category")),
                 ft.DataColumn(ft.Text("Price")),
+                ft.DataColumn(ft.Text("Cost")),
                 ft.DataColumn(ft.Text("Quantity")),
                 ft.DataColumn(ft.Text("In Stock")),
                 ft.DataColumn(ft.Text("Actions")),
@@ -24,14 +27,18 @@ class ProductSection(ft.Container):
         self.load_products()
 
         self.name_field = ft.TextField(label="Name")
+        self.category_field = ft.TextField(label="Category")
         self.price_field = ft.TextField(label="Price", keyboard_type=ft.KeyboardType.NUMBER)
+        self.cost_field = ft.TextField(label="Cost Price", keyboard_type=ft.KeyboardType.NUMBER)
         self.quantity_field = ft.TextField(label="Quantity", keyboard_type=ft.KeyboardType.NUMBER)
         
         self.add_dialog = ft.AlertDialog(
             title=ft.Text("Add Product"),
             content=ft.Column([
                 self.name_field,
+                self.category_field,
                 self.price_field,
+                self.cost_field,
                 self.quantity_field
             ], tight=True),
             actions=[
@@ -68,12 +75,14 @@ class ProductSection(ft.Container):
         return ft.DataRow(
             cells=[
                 ft.DataCell(ft.Text(product.name)),
+                ft.DataCell(ft.Text(product.category or "-")),
                 ft.DataCell(ft.Text(f"${product.price:.2f}")),
+                ft.DataCell(ft.Text(f"${product.cost_price:.2f}")),
                 ft.DataCell(ft.Text(str(product.quantity))),
-                ft.DataCell(ft.Icon(ft.Icons.CHECK_CIRCLE if product.in_stock else ft.Icons.CANCEL, color="green" if product.in_stock else "red")),
+                ft.DataCell(ft.Icon(ft.Icons.CHECK_CIRCLE if product.in_stock else ft.Icons.CANCEL, color=AppColors.SUCCESS if product.in_stock else AppColors.ERROR)),
                 ft.DataCell(
                     ft.Row([
-                        ft.IconButton(ft.Icons.DELETE, icon_color="red", on_click=lambda e: self.delete_product_click(product)),
+                        ft.IconButton(ft.Icons.DELETE, icon_color=AppColors.ERROR, on_click=lambda e: self.delete_product_click(product)),
                     ])
                 ),
             ]
@@ -88,12 +97,16 @@ class ProductSection(ft.Container):
     def save_product(self, e):
         try:
             name = self.name_field.value
+            category = self.category_field.value
             price = float(self.price_field.value)
+            cost = float(self.cost_field.value or 0.0)
             quantity = int(self.quantity_field.value)
             
             new_product = Product(
                 name=name,
+                category=category,
                 price=price,
+                cost_price=cost,
                 quantity=quantity,
                 in_stock=quantity > 0
             )
@@ -101,7 +114,9 @@ class ProductSection(ft.Container):
             self.close_dialog(e)
             self.load_products()
             self.name_field.value = ""
+            self.category_field.value = ""
             self.price_field.value = ""
+            self.cost_field.value = ""
             self.quantity_field.value = ""
             
             self.page.open(ft.SnackBar(content=ft.Text("Product added successfully!")))

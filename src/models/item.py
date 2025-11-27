@@ -7,6 +7,8 @@ class Product(SQLModel, table=True):
     name: str
     description: Optional[str] = None
     price: float
+    cost_price: float = Field(default=0.0)
+    category: Optional[str] = None
     quantity: int
     in_stock: bool = True
 

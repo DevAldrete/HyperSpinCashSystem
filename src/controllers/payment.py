@@ -1,5 +1,6 @@
 from sqlmodel import Session, select
-from models.payment import Payment, PaymentProductLink, PaymentStatus, PaymentMethod
+from models.payment import Payment, PaymentStatus, PaymentMethod
+from models.sale import Sale, SaleItem
 from models.item import Product
 from db.conn import get_session
 from typing import List, Dict, Any, Optional
@@ -10,9 +11,9 @@ class PaymentController:
     def __init__(self, session: Optional[Session] = None):
         self.session = session
 
-    def create_payment(self, items: List[Dict[str, Any]], payment_method: PaymentMethod) -> Payment:
+    def create_sale(self, items: List[Dict[str, Any]], payment_method: PaymentMethod) -> Sale:
         """
-        Create a new payment transaction.
+        Create a new sale transaction.
         
         items: List of dicts with 'product_id' and 'quantity'
         payment_method: Method of payment
@@ -26,7 +27,7 @@ class PaymentController:
 
         try:
             total_amount = 0.0
-            payment_links = []
+            sale_items = []
             
             # 1. Validate items and calculate total
             for item in items:
@@ -44,13 +45,14 @@ class PaymentController:
                 line_total = product.price * quantity
                 total_amount += line_total
                 
-                # Prepare link
-                link = PaymentProductLink(
+                # Prepare SaleItem
+                sale_item = SaleItem(
                     product_id=product_id,
                     quantity=quantity,
-                    unit_price=product.price
+                    unit_price=product.price,
+                    cost_price=product.cost_price
                 )
-                payment_links.append(link)
+                sale_items.append(sale_item)
                 
                 # Update stock
                 product.quantity -= quantity
@@ -58,8 +60,23 @@ class PaymentController:
                     product.in_stock = False
                 self.session.add(product)
 
-            # 2. Create Payment record
+            # 2. Create Sale record
+            sale = Sale(
+                total_amount=total_amount,
+                status="completed",
+                created_at=datetime.now()
+            )
+            self.session.add(sale)
+            self.session.flush() # Flush to get the sale ID
+
+            # 3. Associate items with sale
+            for sale_item in sale_items:
+                sale_item.sale_id = sale.id
+                self.session.add(sale_item)
+            
+            # 4. Create Payment record
             payment = Payment(
+                sale_id=sale.id,
                 amount=total_amount,
                 payment_method=payment_method,
                 status=PaymentStatus.COMPLETED,
@@ -67,16 +84,10 @@ class PaymentController:
                 updated_at=datetime.now()
             )
             self.session.add(payment)
-            self.session.flush() # Flush to get the payment ID
-
-            # 3. Associate links with payment
-            for link in payment_links:
-                link.payment_id = payment.id
-                self.session.add(link)
 
             self.session.commit()
-            self.session.refresh(payment)
-            return payment
+            self.session.refresh(sale)
+            return sale
         except Exception as e:
             self.session.rollback()
             raise e
