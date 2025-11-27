@@ -34,8 +34,9 @@ jobs:
           # uv pip install -r requirements.txt 
 
       - name: Build Windows App
+        env:
+          PYTHONIOENCODING: utf-8 
         run: |
-          # Activate venv explicitly for this step to ensure paths are correct
           .venv\Scripts\activate
           flet build windows --product "HyperSpin" -v
 
