@@ -47,4 +47,4 @@ jobs:
           path: build/windows/** 
 
       - name: List Build Directory
-        run: dir build /s
+        run: Get-ChildItem build -Recurse
