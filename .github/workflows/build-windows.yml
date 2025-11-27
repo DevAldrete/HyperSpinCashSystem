@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install uv
         run: pip install uv
@@ -44,4 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HyperSpin-Windows
-          path: build/windows/runner/Release/*
+          path: build/windows/** 
+
+      - name: List Build Directory
+        run: dir build /s
